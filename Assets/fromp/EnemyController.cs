@@ -6,13 +6,15 @@ using UnityEngine.AI;
 [RequireComponent(typeof(NavMeshAgent))]
 public class EnemyController : MonoBehaviour, IDamagable
 {
+    public Stats UnitStats;
+    public float currentHealth = 1;
     public float attackRange = 2f;
 
     private NavMeshAgent agent;
     private Transform target;
     private List<PlayerController> playerStatsList = new List<PlayerController>();
 
-    public Stats UnitStats;
+    
 
     public float height = 1;
 
@@ -25,6 +27,9 @@ public class EnemyController : MonoBehaviour, IDamagable
         rb = GetComponent<Rigidbody>();
         UnitStats = GetComponent<Stats>();
         StartCoroutine(FindPlayersCoroutine());
+
+        if (UnitStats != null) currentHealth = UnitStats.Hp;
+        else Debug.LogError("not stats component on Unit to set it's health");
     }
 
     public void TakeDamage(float dmg)

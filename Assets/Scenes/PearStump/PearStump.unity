@@ -1245,10 +1245,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Interactor: {fileID: 486014320}
   Equips: {fileID: 0}
-  characters:
-  - {fileID: 1652457477042463608, guid: 36d6c4509b1dba94c949c7791f301671, type: 3}
-  - {fileID: 1652457477042463608, guid: 635c58aeb7cb0054da489d775a234d1f, type: 3}
-  - {fileID: 1652457477042463608, guid: e729af007f380c64d858d64e44f55e01, type: 3}
+  characters: []
   tops:
   - {fileID: 1652457477042463608, guid: d73423166bca71a408b14b27f1505111, type: 3}
   - {fileID: 1652457477042463608, guid: bb1ac7539df00344f9a56919e6c1f166, type: 3}
@@ -3578,6 +3575,13 @@ MonoBehaviour:
   startDelay: 2
   spawnInterval: 1
   quantity: 10
+  waveInterval: 5
+  LevelMultiplier: 1
+  maxWaves: 2
+  bossPrefab: {fileID: 0}
+  treasurePrefab: {fileID: 0}
+  specialSpawnPoint: {fileID: 0}
+  nextStage: {fileID: 486014315}
 --- !u!4 &1880462393
 Transform:
   m_ObjectHideFlags: 0
