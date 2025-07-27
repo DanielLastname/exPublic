@@ -1,4 +1,5 @@
 using UnityEngine;
+using System;
 using System.Collections;
 
 public class CharacterEquips : MonoBehaviour
@@ -15,6 +16,8 @@ public class CharacterEquips : MonoBehaviour
     public GameObject defaultHandR;
     public GameObject defaultHandL;
     public GameObject defaultBod;
+
+    public event Action OnStatUpdate;
 
     void Awake()
     {
@@ -85,6 +88,11 @@ public class CharacterEquips : MonoBehaviour
 
         CharacterStats.CritChance += eq.CritChance;
         CharacterStats.knockBack += eq.knockBack;
+
+        if (eq.isSword == true)Player.AttackType = eq.attackType;
+        ChangePlayerAttack();
+
+        OnStatUpdate?.Invoke();
     }
 
     void StatRemove(Stats eq)
@@ -102,6 +110,24 @@ public class CharacterEquips : MonoBehaviour
 
         CharacterStats.CritChance -= eq.CritChance;
         CharacterStats.knockBack -= eq.knockBack;
+
+        Player.currentAttack = null;
+
+        OnStatUpdate?.Invoke();
+    }
+
+    void ChangePlayerAttack()
+    {
+        try
+        {
+            var DT = GetComponentInChildren<DamageTrigger>();
+            Player.currentAttack = DT.gameObject;
+            Player.currentAttack.SetActive(false); // in case the game object was left on
+        }
+        catch
+        {
+            Debug.Log("current atk = null");
+        }
     }
 
     public void ReplaceAndEquip(GameObject GO, Transform parent)
@@ -110,17 +136,17 @@ public class CharacterEquips : MonoBehaviour
         
         if (GO == null)
         {
-            Debug.LogError("ReplaceAndEquip FAILED: GO (new equipment prefab) is null.");
+            //Debug.LogError("ReplaceAndEquip FAILED: GO (new equipment prefab) is null.");
             return;
         }
 
         if (parent == null)
         {
-            Debug.LogError("ReplaceAndEquip FAILED: parent is null.");
+            //Debug.LogError("ReplaceAndEquip FAILED: parent is null.");
             return;
         }
 
-        Debug.Log($"[ReplaceAndEquip] Attempting to equip '{GO.name}' to parent '{parent.name}'.");
+        //Debug.Log($"[ReplaceAndEquip] Attempting to equip '{GO.name}' to parent '{parent.name}'.");
 
         // Step 1: Check existing children for Stats component
         Stats oldStats = null;
@@ -130,7 +156,7 @@ public class CharacterEquips : MonoBehaviour
         {
             if (child == null)
             {
-                Debug.LogWarning($"[ReplaceAndEquip] Found null child under '{parent.name}'");
+                //Debug.LogWarning($"[ReplaceAndEquip] Found null child under '{parent.name}'");
                 continue;
             }
 
@@ -138,7 +164,7 @@ public class CharacterEquips : MonoBehaviour
             if (oldStats != null)
             {
                 oldObject = child.gameObject;
-                Debug.Log($"[ReplaceAndEquip] Found existing equipped object '{oldObject.name}' with Stats. Preparing to remove.");
+                //Debug.Log($"[ReplaceAndEquip] Found existing equipped object '{oldObject.name}' with Stats. Preparing to remove.");
                 break;
             }
         }
@@ -146,37 +172,37 @@ public class CharacterEquips : MonoBehaviour
         // Step 2: Remove stats and destroy old object if found
         if (oldStats != null && oldObject != null)
         {
-            Debug.Log($"[ReplaceAndEquip] Removing stats from '{oldObject.name}'.");
+            //Debug.Log($"[ReplaceAndEquip] Removing stats from '{oldObject.name}'.");
             StatRemove(oldStats);
             Destroy(oldObject);
         }
         else
         {
-            Debug.Log($"[ReplaceAndEquip] No existing equipment with Stats found under '{parent.name}'.");
+            //Debug.Log($"[ReplaceAndEquip] No existing equipment with Stats found under '{parent.name}'.");
         }
 
         // Step 3: Instantiate new object
         GameObject newInstance = Instantiate(GO, parent);
         if (newInstance == null)
         {
-            Debug.LogError("[ReplaceAndEquip] Instantiate FAILED. newInstance is null.");
+            //Debug.LogError("[ReplaceAndEquip] Instantiate FAILED. newInstance is null.");
             return;
         }
 
         newInstance.transform.localPosition = Vector3.zero;
         newInstance.transform.localRotation = Quaternion.identity;
-        Debug.Log($"[ReplaceAndEquip] Instantiated new equipment '{newInstance.name}' under '{parent.name}'.");
+        //Debug.Log($"[ReplaceAndEquip] Instantiated new equipment '{newInstance.name}' under '{parent.name}'.");
 
         // Step 4: Equip stats from new object
         Stats newStats = newInstance.GetComponentInChildren<Stats>();
         if (newStats != null)
         {
-            Debug.Log($"[ReplaceAndEquip] Applying stats from '{newInstance.name}'.");
+            //Debug.Log($"[ReplaceAndEquip] Applying stats from '{newInstance.name}'.");
             StatEquip(newStats);
         }
         else
         {
-            Debug.LogWarning($"[ReplaceAndEquip] No Stats found on newly instantiated '{newInstance.name}'. Nothing to apply.");
+            //Debug.LogWarning($"[ReplaceAndEquip] No Stats found on newly instantiated '{newInstance.name}'. Nothing to apply.");
         }
 
         StartCoroutine(DelayedAnimatorRefresh());
@@ -190,10 +216,14 @@ public class CharacterEquips : MonoBehaviour
         if (Player != null)
         {
             Player.RefreshAnimators();
-            Debug.Log("[CharacterEquips] Animator refresh completed.");
+            //Debug.Log("[CharacterEquips] Animator refresh completed.");
         }
 
         Player.InteruptPlayerController = false;
+        /*
+        yield return new WaitForSeconds(0.5f);
+        Player.StrikeUp();
+        */
     }
 
 

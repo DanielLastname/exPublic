@@ -579,6 +579,8 @@ MonoBehaviour:
   jump: 2
   CurrentAttack: {fileID: 2110716469310226094}
   playerStats: {fileID: 0}
+  InteruptPlayerController: 0
+  AttackType: 
 --- !u!95 &5672912057089025916
 Animator:
   serializedVersion: 7
@@ -623,6 +625,10 @@ MonoBehaviour:
   iceDef: 1
   CritChance: 1
   knockBack: 1
+  speed: 1
+  jump: 1
+  isSword: 1
+  attackType: attack
 --- !u!1 &1770417827177074366
 GameObject:
   m_ObjectHideFlags: 0

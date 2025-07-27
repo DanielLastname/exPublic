@@ -14,7 +14,13 @@ public class EnemyController : MonoBehaviour, IDamagable
     private Transform target;
     private List<PlayerController> playerStatsList = new List<PlayerController>();
 
-    
+    public Animator anim;
+
+    public GameObject attackHitboxPrefab;  // Assign in inspector
+    public Transform attackSpawnPoint;     // Where to spawn the hitbox (e.g., in front of the enemy)
+    public float attackCooldown = 1f;
+
+    private float attackTimer = 0f;
 
     public float height = 1;
 
@@ -26,6 +32,7 @@ public class EnemyController : MonoBehaviour, IDamagable
         agent = GetComponent<NavMeshAgent>();
         rb = GetComponent<Rigidbody>();
         UnitStats = GetComponent<Stats>();
+        if (anim == null) anim = GetComponentInChildren<Animator>();
         StartCoroutine(FindPlayersCoroutine());
 
         if (UnitStats != null) currentHealth = UnitStats.Hp;
@@ -124,6 +131,8 @@ public class EnemyController : MonoBehaviour, IDamagable
             }
 
         }
+
+        if (attackTimer > 0) attackTimer -= Time.deltaTime;
 
     }
 
@@ -292,11 +301,7 @@ public class EnemyController : MonoBehaviour, IDamagable
 
 
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@22
-    private void Attack()
-    {
-        // Placeholder for attack logic
-        // Debug.Log("Enemy attacking target!");
-    }
+
 
     public void KnockBacker(Vector3 force)
     {
@@ -389,7 +394,28 @@ public class EnemyController : MonoBehaviour, IDamagable
         HandleKO();
 
     }
-    
+
+    // Called when in range
+    private void Attack()
+    {
+        if (attackTimer > 0) return; // still cooling down
+
+        anim.SetTrigger("attack");
+        
+        if (attackHitboxPrefab != null && attackSpawnPoint != null)
+        {
+            GameObject hitbox = Instantiate(attackHitboxPrefab, attackSpawnPoint.position, attackSpawnPoint.rotation);
+            // Optional: auto-destroy after a short time
+            Destroy(hitbox, 0.5f);
+        }
+        else
+        {
+            Debug.LogWarning($"{gameObject.name} tried to attack but has no prefab or spawn point assigned.");
+        }
+
+        attackTimer = attackCooldown;
+    }
+
 
 
 }

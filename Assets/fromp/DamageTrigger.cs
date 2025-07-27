@@ -12,6 +12,13 @@ public class DamageTrigger : MonoBehaviour
     public bool FireAttack;
     public bool iceAttack;
 
+    private void Start()
+    {
+        if (playerStats != null) return;
+        PlayerController pc = GetComponentInParent<PlayerController>();
+        playerStats = pc.GetComponent<Stats>();
+    }
+
     void OnTriggerEnter(Collider other)
     {
         // Check if the object has the IDamagable interface

@@ -16,4 +16,9 @@ public class Stats: MonoBehaviour
 
     public float CritChance = 1;
     public float knockBack = 1;
+    public float speed = 1;
+    public float jump = 1;
+
+    public bool isSword = false;
+    public string attackType = "attack";
 }

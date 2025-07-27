@@ -1,11 +1,13 @@
 using UnityEngine;
 using UnityEngine.UI;
+using System;
 
 public class InteractableController : MonoBehaviour, IInteractable
 {
     public GameObject InteractionUI;
     public PlayerController player;
 
+    public event Action<PlayerController> OnInteracted;
 
     private void Start()
     {
@@ -76,6 +78,8 @@ public class InteractableController : MonoBehaviour, IInteractable
                 Cursor.visible = false; // Hide cursor
             }
         }
+
+        OnInteracted?.Invoke(player);
 
     }
 }

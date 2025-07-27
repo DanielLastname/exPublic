@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using System.Collections;
+using UnityEngine.EventSystems;
 
 public class PlayerController : MonoBehaviour
 {
@@ -18,12 +19,14 @@ public class PlayerController : MonoBehaviour
 
     private PlayerControls controls;
 
-    public GameObject CurrentAttack;
-
     public Stats playerStats;
     public IInteractable CurrentInteractable;
 
     public bool InteruptPlayerController = false;
+
+    public string AttackType;
+    public GameObject DefaultAttack;
+    public GameObject currentAttack;
 
     private void OnEnable()
     {
@@ -36,6 +39,7 @@ public class PlayerController : MonoBehaviour
 
         // Enable the controls
         controls.Enable();
+        AttackType = "attack";
     }
 
     private void OnDisable()
@@ -58,7 +62,8 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (InteruptPlayerController == true) return;
+        // Set InteruptPlayerController based on whether the mouse is over a UI element
+        InteruptPlayerController = EventSystem.current.IsPointerOverGameObject(); //detect UI elements
 
         Vector3 forward = camTran.forward;
         Vector3 right = camTran.right;
@@ -69,32 +74,30 @@ public class PlayerController : MonoBehaviour
         forward.Normalize();
         right.Normalize();
 
-        Vector3 moveDirection = forward * moveInput.y + right * moveInput.x;
-        controller.Move(moveDirection * speed * Time.deltaTime);
+        if (!InteruptPlayerController)
+        {
+            Vector3 moveDirection = forward * moveInput.y + right * moveInput.x;
+            controller.Move(moveDirection * speed * Time.deltaTime);
 
-        if (LockRotation && moveDirection.sqrMagnitude > 0.001f)
-        {
-            Quaternion toRotaion = Quaternion.LookRotation( moveDirection, Vector3.up);
-            transform.rotation = Quaternion.Slerp(transform.rotation, toRotaion, 10f * Time.deltaTime);
-            for (int i = 0; i < animator.Length; i ++)
+            if (LockRotation && moveDirection.sqrMagnitude > 0.001f)
             {
-                animator[i].SetBool("walk", true);
+                Quaternion toRotaion = Quaternion.LookRotation(moveDirection, Vector3.up);
+                transform.rotation = Quaternion.Slerp(transform.rotation, toRotaion, 10f * Time.deltaTime);
+                for (int i = 0; i < animator.Length; i++)
+                {
+                    animator[i].SetBool("walk", true);
+                }
             }
-            
-        }
-        else
-        {
-            for (int i = 0; i < animator.Length; i++)
+            else
             {
-                animator[i].SetBool("walk", false);
-                animator[i].SetFloat("speed", moveDirection.sqrMagnitude);
+                for (int i = 0; i < animator.Length; i++)
+                {
+                    animator[i].SetBool("walk", false);
+                    animator[i].SetFloat("speed", moveDirection.sqrMagnitude);
+                }
             }
-               
         }
-        /*
-        Vector3 move = new Vector3(moveInput.x, 0, moveInput.y);
-        controller.Move(move * Time.deltaTime * speed);
-        */
+
         velocity.y += Time.deltaTime * gravity;
         controller.Move(velocity * Time.deltaTime);
     }
@@ -107,6 +110,7 @@ public class PlayerController : MonoBehaviour
 
     public void OnJump(InputAction.CallbackContext context)
     {
+        if (InteruptPlayerController) return;
         if (controller.isGrounded && context.performed)
         {
             //Debug.Log("Das yumpin zee");
@@ -122,34 +126,13 @@ public class PlayerController : MonoBehaviour
             //animator.SetBool("jump", false);
         }
     }
-    /*
-    public void OnWeapon(InputAction.CallbackContext context)
-    {
-        if (context.performed)
-        {
-            Debug.Log("attack");
-            animator.SetTrigger("attack");
-            
-        }
-    }
-
-    public void OnInteract(InputAction.CallbackContext context)
-    {
-        Debug.Log("interact");
-        if (context.performed)
-        {
-            Debug.Log("interacack");
-            animator.SetTrigger("attack");
-
-        }
-    }
-    */
     public void WeaponAction()
     {
+        if (InteruptPlayerController) return;
         //Debug.Log("Weapon action triggered!");
         for (int i = 0; i < animator.Length; i++)
         {
-            animator[i].SetTrigger("attack");
+            animator[i].SetTrigger(AttackType);
         }
             
         StartCoroutine(ActivateDeactivateAttack());
@@ -158,13 +141,27 @@ public class PlayerController : MonoBehaviour
     IEnumerator ActivateDeactivateAttack()
     {
         yield return new WaitForSeconds(0.3f);
-        CurrentAttack.SetActive(true);
-        DamageTrigger t = CurrentAttack.GetComponent<DamageTrigger>();
-        t.playerStats = playerStats;
+
+
+        if (currentAttack != null)
+        {
+            currentAttack.SetActive(true);
+            DamageTrigger t = currentAttack.GetComponent<DamageTrigger>();
+            t.playerStats = playerStats;
+        }
+        else
+        {
+            DefaultAttack.SetActive(true);
+            DamageTrigger t = DefaultAttack.GetComponent<DamageTrigger>();
+            t.playerStats = playerStats;
+        }
+
         if (playerStats == null) Debug.LogError("PLAYER STATS NOT FOUND");
 
         yield return new WaitForSeconds(0.3f);
-        CurrentAttack.SetActive(false);
+        if (currentAttack != null) currentAttack.SetActive(false);
+        else DefaultAttack.SetActive(false);
+
     }
 
     public void InteractAction ()
@@ -184,6 +181,14 @@ public class PlayerController : MonoBehaviour
     public void RefreshAnimators()
     {
         animator = GetComponentsInChildren<Animator>();
+    }
+
+    public void StrikeUp()
+    {
+        for (int i = 0; i < animator.Length; i++)
+        {
+            animator[i].SetTrigger("strikeUp");
+        }
     }
 
 }
